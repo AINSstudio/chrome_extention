@@ -374,10 +374,10 @@ for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
         if (chrome.runtime.lastError || result[key] === version) return;
         chrome.storage.local.set({[key]:version});
         const copy = {
-          en:{title:`AINS Studio successfully updated to v${version}`,heading:'This update includes',detail:'The five-button dock has a softer frosted-glass finish with muted blue, cream, and sage colors, gentle highlights, and a refined dark theme.',close:'Dismiss'},
-          ms:{title:`AINS Studio berjaya dikemas kini ke v${version}`,heading:'Kemas kini ini merangkumi',detail:'Bar lima butang kini menggunakan kemasan kaca kabur dengan warna biru, krim dan hijau sage yang lembut, cahaya halus serta tema gelap yang dipertingkat.',close:'Tutup'},
+          en:{title:`AINS Studio successfully updated to v${version}`,heading:'This update includes',detail:'The Excel importer now has a local admin-password gate. Set a password on first use; the salted password hash stays in Chrome storage.',close:'Dismiss'},
+          ms:{title:`AINS Studio berjaya dikemas kini ke v${version}`,heading:'Kemas kini ini merangkumi',detail:'Pengimport Excel kini dilindungi kata laluan pentadbir setempat. Tetapkan kata laluan pada penggunaan pertama; cincangan kata laluan disimpan dalam storan Chrome.',close:'Tutup'},
           zh:{title:`AINS Studio 已成功更新至 v${version}`,heading:'此更新包含',detail:'五项底部栏现采用更明显的玻璃拟态效果：更强模糊、分层透明度、明亮玻璃边缘和柔和阴影。',close:'关闭'}
-        }[language] || {title:`AINS Studio successfully updated to v${version}`,heading:'This update includes',detail:'The five-button dock has a softer frosted-glass finish with muted blue, cream, and sage colors, gentle highlights, and a refined dark theme.',close:'Dismiss'};
+        }[language] || {title:`AINS Studio successfully updated to v${version}`,heading:'This update includes',detail:'The Excel importer now has a local admin-password gate. Set a password on first use; the salted password hash stays in Chrome storage.',close:'Dismiss'};
         const toast=document.createElement('aside');toast.id='ains-update-toast';toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');
         toast.innerHTML=`<span class="ains-update-mark" aria-hidden="true">A</span><div class="ains-update-copy"><b>${copy.title}</b><strong>${copy.heading}</strong><p>${copy.detail}</p></div><button type="button" aria-label="${copy.close}">×</button>`;
         const close=()=>{toast.classList.add('ains-update-leaving');setTimeout(()=>toast.remove(),220);};

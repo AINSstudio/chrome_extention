@@ -1,6 +1,9 @@
 (() => {
   'use strict';
   const JOB_KEY = 'ainsStudioBulkJobV1';
+  const ADMIN_KEY = 'ainsStudioBulkAdminPasswordV1';
+  const ADMIN_SESSION_KEY = 'ainsStudioBulkAdminUnlockedV1';
+  const ADMIN_HASH_ITERATIONS = 210000;
   const WAIT_MS = 180000;
   const APPROVAL_SECONDS = 3;
   const AINS_RETRY_WAIT_MS = 180000;
@@ -29,6 +32,7 @@
     } catch (_) {}
   };
   let job = readJob(), parsed = null, stopRequested = false, activeRun = false, ui = null, clock = 0;
+  let adminUnlocked = sessionStorage.getItem(ADMIN_SESSION_KEY) === '1';
   if(job?.phase==='waiting'){
     if(job.waitDurationMs!==WAIT_MS){job.due=Date.now()+WAIT_MS;job.waitDurationMs=WAIT_MS;job.didReloadAfterWait=false;}
     if(!job.lastSubmittedRow&&job.rows?.[job.index]){job.lastSubmittedRow=job.rows[job.index].row;job.lastSubmittedTitle=rowData(job.rows[job.index]).title;}
@@ -98,12 +102,14 @@
   }
   function addUI() {
     if(!document.body || document.getElementById('ains-bulk-launch')) return;
-    const launch=document.createElement('button'); launch.id='ains-bulk-launch'; launch.type='button'; launch.textContent='Excel Import'; launch.title='Import reading records from Excel';
+    const launch=document.createElement('button'); launch.id='ains-bulk-launch'; launch.type='button'; launch.textContent='🔒 Admin only · Excel Import'; launch.title='Admin-only Excel importer — password required';
     const shade=document.createElement('div'); shade.id='ains-bulk-shade'; shade.hidden=true;
-    shade.innerHTML='<section id="ains-bulk-panel" role="dialog" aria-modal="true" aria-labelledby="ains-bulk-title"><header><div><strong id="ains-bulk-title">Excel reading-record helper</strong><small>Fill and submit your book records in AINS</small></div><button type="button" id="ains-bulk-close" aria-label="Close">×</button></header><div class="ains-bulk-body"><label class="ains-bulk-file">Choose .xlsx or .csv file<input id="ains-bulk-file" type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label><div id="ains-bulk-map" hidden></div><div id="ains-bulk-status" role="status">Choose a workbook to preview its columns.</div><div class="ains-bulk-progress"><span id="ains-bulk-progress-fill"></span></div><div id="ains-bulk-actions"><button type="button" id="ains-bulk-start" disabled>Prepare records</button><button type="button" id="ains-bulk-stop" hidden>Stop batch</button></div><p class="ains-bulk-note">Material type is fixed to Physical book and the 5-star rating is selected. You can review or edit details. The approval prompt counts down for 3 seconds; choose Cancel &amp; edit to stop it. After each successful submission, the importer waits 3 minutes before the next row. AINS rate-limit retries also wait 3 minutes.</p></div></section>';
+    shade.innerHTML='<section id="ains-bulk-auth" role="dialog" aria-modal="true" aria-labelledby="ains-bulk-auth-title"><div class="ains-bulk-auth-mark" aria-hidden="true">🔐</div><p class="ains-bulk-auth-kicker">ADMIN ONLY</p><h2 id="ains-bulk-auth-title">Password required</h2><p id="ains-bulk-auth-copy">Set a local admin password to protect the Excel importer on this browser profile.</p><form id="ains-bulk-auth-form"><label>Password<input id="ains-bulk-password" type="password" autocomplete="current-password" required minlength="8"></label><label id="ains-bulk-confirm-wrap" hidden>Confirm password<input id="ains-bulk-password-confirm" type="password" autocomplete="new-password" minlength="8"></label><p id="ains-bulk-auth-status" role="status"></p><div class="ains-bulk-auth-actions"><button type="button" id="ains-bulk-auth-cancel">Cancel</button><button type="submit" id="ains-bulk-auth-submit">Unlock importer</button></div></form><small class="ains-bulk-auth-footnote">Password verification is stored locally in Chrome. This client-side lock does not grant or verify AINS server administrator privileges.</small></section><section id="ains-bulk-panel" role="dialog" aria-modal="true" aria-labelledby="ains-bulk-title" hidden><header><div><strong id="ains-bulk-title">🔒 Admin-only Excel reading-record helper</strong><small>Fill and submit your book records in AINS</small></div><button type="button" id="ains-bulk-close" aria-label="Close">×</button></header><div class="ains-bulk-body"><label class="ains-bulk-file">Choose .xlsx or .csv file<input id="ains-bulk-file" type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label><div id="ains-bulk-map" hidden></div><div id="ains-bulk-status" role="status">Choose a workbook to preview its columns.</div><div class="ains-bulk-progress"><span id="ains-bulk-progress-fill"></span></div><div id="ains-bulk-actions"><button type="button" id="ains-bulk-start" disabled>Prepare records</button><button type="button" id="ains-bulk-stop" hidden>Stop batch</button></div><p class="ains-bulk-note">Material type is fixed to Physical book and the 5-star rating is selected. You can review or edit details. The approval prompt counts down for 3 seconds; choose Cancel &amp; edit to stop it. After each successful submission, the importer waits 3 minutes before the next row. AINS rate-limit retries also wait 3 minutes.</p></div></section>';
     document.body.append(launch,shade);
-    ui={launch,shade,status:shade.querySelector('#ains-bulk-status'),map:shade.querySelector('#ains-bulk-map'),start:shade.querySelector('#ains-bulk-start'),stop:shade.querySelector('#ains-bulk-stop'),file:shade.querySelector('#ains-bulk-file'),progress:shade.querySelector('#ains-bulk-progress-fill')};
-    launch.addEventListener('click',()=>{shade.hidden=false;});
+    ui={launch,shade,auth:shade.querySelector('#ains-bulk-auth'),authForm:shade.querySelector('#ains-bulk-auth-form'),authStatus:shade.querySelector('#ains-bulk-auth-status'),authPassword:shade.querySelector('#ains-bulk-password'),authConfirm:shade.querySelector('#ains-bulk-password-confirm'),authConfirmWrap:shade.querySelector('#ains-bulk-confirm-wrap'),authSubmit:shade.querySelector('#ains-bulk-auth-submit'),panel:shade.querySelector('#ains-bulk-panel'),status:shade.querySelector('#ains-bulk-status'),map:shade.querySelector('#ains-bulk-map'),start:shade.querySelector('#ains-bulk-start'),stop:shade.querySelector('#ains-bulk-stop'),file:shade.querySelector('#ains-bulk-file'),progress:shade.querySelector('#ains-bulk-progress-fill')};
+    launch.addEventListener('click',()=>openImporter());
+    ui.authForm.addEventListener('submit',authenticateAdmin);
+    shade.querySelector('#ains-bulk-auth-cancel').addEventListener('click',()=>{shade.hidden=true;ui.authForm.reset();ui.authStatus.textContent='';});
     shade.querySelector('#ains-bulk-close').addEventListener('click',()=>{shade.hidden=true;});
     shade.addEventListener('click',e=>{if(e.target===shade)shade.hidden=true;});
     ui.file.addEventListener('change',onFile);
@@ -111,12 +117,51 @@
     ui.stop.addEventListener('click',()=>{stopRequested=true; if(job){job.stopAfterCurrent=true;saveJob();} update('Stopping the batch. No next record will be prepared.');});
     if(job) {
       const handsOff=job.phase==='awaiting-approval'||job.phase==='awaiting-manual-submit'||job.phase==='waiting'||job.phase==='cooldown-retry';
-      shade.hidden=handsOff; ui.stop.hidden=false; ui.start.hidden=true;
-      update(job.phase==='waiting'?'Restoring the 3-minute wait…':job.phase==='cooldown-retry'?'Restoring AINS 3-minute retry wait…':job.phase==='awaiting-approval'?'Restoring the 3-second approval prompt…':job.phase==='awaiting-manual-submit'?'Your record is ready for you to edit or submit.':'Restoring the import…');
-      resumeJob();
+      ui.stop.hidden=false; ui.start.hidden=true;
+      if(!handsOff) update('A saved batch is paused. Unlock the admin-only importer to resume it.');
     }
     if(!/new-record-book/i.test(location.pathname)) launch.hidden=true;
   }
+  function base64(bytes) { let binary=''; for(const byte of bytes) binary+=String.fromCharCode(byte); return btoa(binary); }
+  async function derivePasswordHash(password,salt) {
+    const material=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
+    const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:ADMIN_HASH_ITERATIONS,hash:'SHA-256'},material,256);
+    return base64(new Uint8Array(bits));
+  }
+  async function storedAdminCredential() { const value=await chrome.storage.local.get(ADMIN_KEY); return value[ADMIN_KEY]||null; }
+  async function openImporter() {
+    if(!ui)return;
+    ui.shade.hidden=false;
+    const credential=await storedAdminCredential();
+    if(adminUnlocked&&credential) { showImporter(); if(job&&job.phase!=='paused')resumeJob(); return; }
+    adminUnlocked=false;sessionStorage.removeItem(ADMIN_SESSION_KEY);ui.panel.hidden=true;ui.auth.hidden=false;
+    const setup=!credential;
+    ui.auth.querySelector('#ains-bulk-auth-title').textContent=setup?'Create admin password':'Admin password required';
+    ui.auth.querySelector('#ains-bulk-auth-copy').textContent=setup?'Create a local password before using the Excel importer. Use at least 8 characters.':'Enter the local admin password to unlock the Excel importer.';
+    ui.authConfirmWrap.hidden=!setup;ui.authConfirm.required=setup;ui.authPassword.autocomplete=setup?'new-password':'current-password';ui.authSubmit.textContent=setup?'Set password':'Unlock importer';ui.authStatus.textContent='';ui.authForm.reset();ui.authPassword.focus();
+  }
+  async function authenticateAdmin(event) {
+    event.preventDefault();
+    const password=ui.authPassword.value,confirm=ui.authConfirm.value;
+    if(password.length<8){ui.authStatus.textContent='Use a password with at least 8 characters.';return;}
+    ui.authSubmit.disabled=true;ui.authStatus.textContent='Verifying password…';
+    try {
+      const credential=await storedAdminCredential();
+      if(!credential) {
+        if(password!==confirm){ui.authStatus.textContent='The passwords do not match.';return;}
+        const salt=crypto.getRandomValues(new Uint8Array(16));
+        await chrome.storage.local.set({[ADMIN_KEY]:{salt:base64(salt),hash:await derivePasswordHash(password,salt),iterations:ADMIN_HASH_ITERATIONS,createdAt:Date.now()}});
+      } else {
+        const salt=Uint8Array.from(atob(credential.salt),char=>char.charCodeAt(0));
+        const hash=await derivePasswordHash(password,salt);
+        if(hash!==credential.hash){ui.authStatus.textContent='Incorrect password. Try again.';ui.authPassword.select();return;}
+      }
+      adminUnlocked=true;sessionStorage.setItem(ADMIN_SESSION_KEY,'1');ui.authForm.reset();showImporter();
+      if(job){update(job.phase==='waiting'?'Restoring the 3-minute wait…':job.phase==='cooldown-retry'?'Restoring AINS 3-minute retry wait…':job.phase==='awaiting-approval'?'Restoring the 3-second approval prompt…':job.phase==='awaiting-manual-submit'?'Your record is ready for you to edit or submit.':job.phase==='paused'?job.error||'Import paused. Check AINS, then prepare the selected row again.':'Restoring the import…');if(job.phase!=='paused')resumeJob();}
+    } catch(error) { ui.authStatus.textContent='Could not verify the password in this browser. Please reload AINS and try again.'; }
+    finally {ui.authSubmit.disabled=false;}
+  }
+  function showImporter() { ui.auth.hidden=true;ui.panel.hidden=false; }
   function update(message) {
     if(!ui) return; ui.status.textContent=message;
     if(job?.rows?.length) ui.progress.style.width=`${Math.min(100,Math.round(job.index/job.rows.length*100))}%`;
@@ -353,7 +398,8 @@
   function boot() {
     if(!document.body)return;
     addUI();
-    if(job&&job.phase==='paused') { ui.shade.hidden=false;ui.start.hidden=false;ui.stop.hidden=true;update(job.error||'Import paused. Check AINS, then restart from the selected row.'); }
+    if(job&&job.phase==='paused') { ui.start.hidden=false;ui.stop.hidden=true;update(job.error||'Import paused. Unlock the admin-only importer, check AINS, then restart from the selected row.'); }
+    if(job&&job.phase!=='paused'&&adminUnlocked) storedAdminCredential().then(credential=>{if(credential&&adminUnlocked)resumeJob();}).catch(()=>{});
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
   const bootObserver=new MutationObserver(()=>{if(!document.getElementById('ains-bulk-launch')) boot();});

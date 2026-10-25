@@ -1,5 +1,12 @@
 # Changelog — AINS Studio / Project Aurora
 
+## [4.35.0] — 2026-10-25
+
+### Added
+- Added a password gate to the Excel importer with first-use local password setup and per-tab-session unlock.
+- Store only a salted PBKDF2-SHA-256 password hash in Chrome extension storage; saved imports require unlock before resuming.
+- Label the importer as admin-only and explain that the local lock does not authenticate AINS server privileges.
+
 ## [4.34.0] — 2026-10-25
 
 ### Changed

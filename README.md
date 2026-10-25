@@ -2,7 +2,7 @@
 
 A client-side Chrome extension that improves AINS reading records at `ains.moe.gov.my/web/*`.
 
-**Current release:** `v4.34.0` · **Codename:** Project Aurora
+**Current release:** `v4.35.0` · **Codename:** Project Aurora
 
 ## Highlights
 
@@ -12,6 +12,7 @@ A client-side Chrome extension that improves AINS reading records at `ains.moe.g
 - System, Light, and Dark appearance modes; supported interface labels in Bahasa Melayu, English, and Chinese.
 - Reading overview with AINS-aware yearly totals, today’s count, date filtering, seven-day chart, reading streak, and CSV export for a chosen date.
 - Excel/CSV book-record helper with column mapping, selectable starting row, gradual form filling, Physical book selection, five-star selection, approval prompt, and three-minute retry/reload handling.
+- Excel importer is protected by a local admin password set on first use; the password is stored as a salted PBKDF2 hash in Chrome extension storage.
 - Copy, cut, paste, context menu, and text-selection behavior restored on AINS pages.
 - Preferences, record snapshots, and importer state stay in Chrome extension storage; record content is not uploaded.
 

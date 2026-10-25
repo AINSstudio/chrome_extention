@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AINS Studio",
-  "version": "4.34.0",
+  "version": "4.35.0",
   "description": "AINS visual redesign with language and theme options, date filtering, and Excel book-record importing.",
   "action": {
     "default_title": "AINS Studio",
