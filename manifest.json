@@ -1,17 +1,17 @@
 {
   "manifest_version": 3,
   "name": "AINS Studio",
-  "version": "4.36.0",
-  "description": "AINS dashboard with themes, reading statistics, and a password-gated Excel record importer.",
+  "version": "5.0.0",
+  "description": "AINS Studio 5 with a full settings center, feature controls, reading tools, and Excel import.",
   "action": {
-    "default_title": "AINS Studio",
-    "default_popup": "popup.html"
+    "default_title": "Open AINS Studio settings"
   },
-  "permissions": ["storage"],
+  "background": { "service_worker": "background.js" },
+  "permissions": ["storage", "scripting"],
+  "host_permissions": ["https://ains.moe.gov.my/web/*"],
   "content_scripts": [
     {
       "matches": ["https://ains.moe.gov.my/web/*"],
-      "css": ["styles.css"],
       "js": ["theme.js", "bulk-import.js", "studio-dashboard.js"],
       "run_at": "document_start"
     }

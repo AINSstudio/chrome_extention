@@ -1,8 +1,39 @@
-// AINS registers bubble-phase handlers that cancel clipboard and context-menu events.
-// Stop those page handlers during capture, but leave the browser default untouched.
-for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
-  document.addEventListener(type, event => event.stopImmediatePropagation(), { capture: true });
-}
+ (async () => {
+  const CONFIG_KEY='ainsStudioConfigV1';
+  const config=(await chrome.storage.local.get(CONFIG_KEY))[CONFIG_KEY]||{};
+  if(config.enabled===false)return;
+  const features=config.features||{};
+  const ANNOUNCEMENT_DISMISS_KEY='ainsStudioDismissAnnouncementV1';
+  // Preserve browser-native clipboard events when the AINS page cancels them.
+  if(features.clipboard!==false)for(const type of ['copy','cut','paste','contextmenu'])document.addEventListener(type,event=>event.stopImmediatePropagation(),{capture:true});
+
+  const scanAnnouncements=async node=>{
+    const candidates=[];
+    if(node instanceof Element){const ancestor=node.closest('.modal,[role="dialog"],[aria-modal="true"]');if(ancestor)candidates.push(ancestor);if(node.matches('[role="dialog"],[aria-modal="true"],.modal'))candidates.push(node)}
+    node.querySelectorAll?.('[role="dialog"],[aria-modal="true"],.modal').forEach(el=>candidates.push(el));
+    for(const candidate of candidates){
+      const modal=candidate.closest('.modal')||candidate;
+      if(modal.dataset.ainsAnnouncementHandled)continue;
+      const heading=modal.querySelector('.modal-title,h1,h2,h3,h4,h5,[role="heading"],[data-title]');
+      if(!/pengumuman|announcement/i.test(heading?.textContent||''))continue;
+      modal.dataset.ainsAnnouncementHandled='true';
+      const saved=(await chrome.storage.local.get(ANNOUNCEMENT_DISMISS_KEY))[ANNOUNCEMENT_DISMISS_KEY]===true;
+      if(saved){
+        const close=modal.querySelector('[data-bs-dismiss="modal"],[data-dismiss="modal"],.btn-close,button.close,[aria-label*="close" i],[aria-label*="tutup" i]');
+        if(close)close.click();else{modal.hidden=true;modal.setAttribute('aria-hidden','true');modal.classList.remove('show','in');document.querySelectorAll('.modal-backdrop').forEach(backdrop=>backdrop.remove());document.body.classList.remove('modal-open');}
+        continue;
+      }
+      const label=document.documentElement.lang?.toLowerCase()||'ms';
+      const text=label.startsWith('zh')?`不再显示`:label.startsWith('en')?'Don’t show again':'Jangan tunjukkan lagi';
+      const choice=document.createElement('label');choice.className='ains-announcement-choice';
+      const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.setAttribute('aria-label',text);
+      const caption=document.createElement('span');caption.textContent=text;choice.append(checkbox,caption);
+      checkbox.addEventListener('change',()=>chrome.storage.local.set({[ANNOUNCEMENT_DISMISS_KEY]:checkbox.checked}));
+      const target=modal.querySelector('.modal-footer,.modal-body')||modal;target.append(choice);
+    }
+  };
+  const watchAnnouncements=()=>{scanAnnouncements(document);const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===Node.ELEMENT_NODE)scanAnnouncements(node)})));observer.observe(document.documentElement,{subtree:true,childList:true});};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',watchAnnouncements,{once:true});else watchAnnouncements();
 
 (() => {
   const THEME_KEY = 'ains-glass-theme';
@@ -49,17 +80,20 @@ for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
   Object.assign(words.zh,{'The 9-second review prompt is displayed on the record tab.':'记录页面会显示 3 秒确认提示。','The 3-second approval prompt is displayed on the record tab.':'记录页面会显示 3 秒确认提示。','Next row starts after this 3-minute wait.':'等待 3 分钟后开始下一条记录。','3-second approval':'3 秒确认','3-minute wait':'等待 3 分钟','Approval prompts count down for 3 seconds. After each submission, the importer waits 3 minutes; AINS rate-limit retries also wait 3 minutes.':'确认提示倒计时为 3 秒。每次提交后，导入器会等待 3 分钟；AINS 限流重试也会等待 3 分钟。'});
 
   const applyTheme = theme => {
+    if(features.appearance===false){delete root.dataset.ainsTheme;return;}
     root.dataset.ainsTheme = theme;
     document.querySelectorAll('#ains-glass-menu [data-theme]').forEach(el => el.setAttribute('aria-checked', String(el.dataset.theme === theme)));
   };
   const liquidSurfaceSelector='#ains-glass-toggle,#ains-glass-menu,#ains-update-toast,#ains-studio-page .as-card,#ains-studio-page .as-metric,#ains-studio-page .as-extension-status,#ains-studio-page .as-extension-module,#ains-studio-page .as-date-chip,#ains-studio-page .as-back,#ains-studio-page .as-icon-button,#ains-studio-page button,body :is(.panel,.card,.wiz-body,.wiz-foot,.confirm-box,.review-card,.ains-record-row)';
   const markOneLiquidSurface=el=>{el.classList.add('ains-liquid-surface');if(getComputedStyle(el).position==='static')el.style.position='relative'};
   const markLiquidSurfaces=(node=document)=>{
+    if(features.appearance===false)return;
     if(node instanceof Element&&node.matches(liquidSurfaceSelector))markOneLiquidSurface(node);
     node.querySelectorAll?.(liquidSurfaceSelector).forEach(markOneLiquidSurface);
   };
   const liquidButtonSelector='body button,body a.btn,body .btn,#ains-studio-page .as-back,#ains-glass-menu .ag-shortcut';
   const markLiquidButtons=(node=document)=>{
+    if(features.appearance===false)return;
     if(node instanceof Element&&node.matches(liquidButtonSelector))node.classList.add('ains-liquid-button');
     node.querySelectorAll?.(liquidButtonSelector).forEach(el=>el.classList.add('ains-liquid-button'));
   };
@@ -129,6 +163,7 @@ for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
     }, 650);
   };
   const translateNode = (node, lang) => {
+    if(features.translator===false)return;
     if (!node || node.nodeType !== Node.TEXT_NODE) return;
     const parent = node.parentElement;
     if (!parent || parent.closest('script,style,textarea,input,code,pre,#ains-glass-toggle,#ains-glass-menu,#ains-translation-progress,#ains-date-filter')) return;
@@ -142,6 +177,7 @@ for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
     if (node.nodeValue !== next) node.nodeValue = next;
   };
   const translateAttrs = (el, lang) => {
+    if(features.translator===false)return;
     if (!(el instanceof Element) || el.closest('#ains-glass-toggle,#ains-glass-menu,#ains-date-filter')) return;
     for (const attr of ['placeholder','title','aria-label']) {
       if (!el.hasAttribute(attr)) continue;
@@ -154,6 +190,7 @@ for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
     }
   };
   const translateTree = (container, lang, run = activeTranslation, showProgress = true) => {
+    if(features.translator===false)return Promise.resolve();
     if (!container || run !== activeTranslation) return Promise.resolve();
     if (showProgress && lang !== 'ms') showTranslationProgress();
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
@@ -175,6 +212,7 @@ for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
     });
   };
   const translatePage = async lang => {
+    if(features.translator===false)return;
     const run = ++activeTranslation;
     if (lang !== 'ms') showTranslationProgress();
     await translateTree(document.body, lang, run);
@@ -374,10 +412,10 @@ for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
         if (chrome.runtime.lastError || result[key] === version) return;
         chrome.storage.local.set({[key]:version});
         const copy = {
-          en:{title:`AINS Studio successfully updated to v${version}`,heading:'This update includes',detail:'The Excel importer now accepts the shared admin code, with show/hide and a short lockout after repeated errors. Safari extension support is marked coming soon.',close:'Dismiss'},
-          ms:{title:`AINS Studio berjaya dikemas kini ke v${version}`,heading:'Kemas kini ini merangkumi',detail:'Pengimport Excel kini menerima kod pentadbir bersama, dengan fungsi papar/sembunyi dan sekatan sementara selepas beberapa cubaan salah. Sambungan Safari ditandakan akan datang.',close:'Tutup'},
-          zh:{title:`AINS Studio 已成功更新至 v${version}`,heading:'此更新包含',detail:'Excel 导入器现使用共享管理员代码，并加入显示/隐藏及多次输错后的短暂锁定。Safari 扩展标记为即将推出。',close:'关闭'}
-        }[language] || {title:`AINS Studio successfully updated to v${version}`,heading:'This update includes',detail:'The Excel importer now accepts the shared admin code, with show/hide and a short lockout after repeated errors. Safari extension support is marked coming soon.',close:'Dismiss'};
+          en:{title:`AINS Studio successfully updated to v${version}`,heading:'This update includes',detail:'A full settings center, feature controls, custom 404 page, and a “Don’t show again” option for AINS announcements.',close:'Dismiss'},
+          ms:{title:`AINS Studio berjaya dikemas kini ke v${version}`,heading:'Kemas kini ini merangkumi',detail:'Pusat tetapan penuh, kawalan ciri, halaman 404 tersuai dan pilihan “Jangan tunjukkan lagi” untuk pengumuman AINS.',close:'Tutup'},
+          zh:{title:`AINS Studio 已成功更新至 v${version}`,heading:'此更新包含',detail:'全新的设置中心、功能开关、自定义 404 页面，以及 AINS 公告的“不再显示”选项。',close:'关闭'}
+        }[language] || {title:`AINS Studio successfully updated to v${version}`,heading:'This update includes',detail:'A full settings center, feature controls, custom 404 page, and a “Don’t show again” option for AINS announcements.',close:'Dismiss'};
         const toast=document.createElement('aside');toast.id='ains-update-toast';toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');
         toast.innerHTML=`<span class="ains-update-mark" aria-hidden="true">A</span><div class="ains-update-copy"><b>${copy.title}</b><strong>${copy.heading}</strong><p>${copy.detail}</p></div><button type="button" aria-label="${copy.close}">×</button>`;
         const close=()=>{toast.classList.add('ains-update-leaving');setTimeout(()=>toast.remove(),220);};
@@ -423,7 +461,8 @@ for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
     });
     document.addEventListener('click', event => { if (!menu.contains(event.target) && !toggle.contains(event.target)) { menu.hidden = true; toggle.setAttribute('aria-expanded','false'); } });
     document.addEventListener('keydown', event => { if (event.key === 'Escape' && !menu.hidden) { menu.hidden = true; toggle.setAttribute('aria-expanded','false'); toggle.focus(); } });
-    document.body.append(toggle,menu);markLiquidSurfaces(document.body);markLiquidButtons(document.body);
+    // The full settings page replaces the old floating popout controls.
+    toggle.remove();menu.remove();markLiquidSurfaces(document.body);markLiquidButtons(document.body);
     showUpdateToast();
     installActivityDateFilter();
     markDatedRecordRows();
@@ -445,4 +484,5 @@ for (const type of ['copy', 'cut', 'paste', 'contextmenu']) {
     observer.observe(document.body,{subtree:true,childList:true,characterData:true});
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',addControl,{once:true}); else addControl();
+})();
 })();

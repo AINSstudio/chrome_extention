@@ -1,4 +1,19 @@
-# Changelog — AINS Studio / Project Aurora
+# Changelog — AINS Studio / Glasswing
+
+## [5.0.0] — 2026-10-25
+
+### Added
+- Added a full-page AINS Studio settings center with appearance and language controls.
+- Added global enable/disable and individual switches for appearance, translation, dashboard, reading activity, Excel import, and clipboard support; disabled features return to AINS defaults.
+- Added an account-bar settings shortcut and made the Chrome toolbar action open the full settings page.
+- Added a custom Studio 404 page for unsupported Studio routes.
+- Added a Safari extension “Coming soon” notice to the settings center.
+- Added a “Don’t show again” checkbox to the AINS announcement dialog with a settings-page reset.
+
+### Changed
+- Removed the Chrome action popup and the floating in-page settings popout.
+- Load the full redesign stylesheet only when the extension appearance is enabled, while keeping Studio settings and the account shortcut reachable.
+- Removed the obsolete popup files.
 
 ## [4.36.0] — 2026-10-25
 

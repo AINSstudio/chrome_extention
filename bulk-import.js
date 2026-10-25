@@ -1,5 +1,8 @@
-(() => {
+(async () => {
   'use strict';
+  const CONFIG_KEY='ainsStudioConfigV1';
+  const config=(await chrome.storage.local.get(CONFIG_KEY))[CONFIG_KEY]||{};
+  if(config.enabled===false||config.features?.excelImporter===false)return;
   const JOB_KEY = 'ainsStudioBulkJobV1';
   const ADMIN_KEY = 'ainsStudioBulkAdminPasswordV1';
   const ADMIN_SESSION_KEY = 'ainsStudioBulkAdminUnlockedV1';
