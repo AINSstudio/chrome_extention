@@ -1,5 +1,13 @@
 # Changelog — AINS Studio / Project Aurora
 
+## [4.36.0] — 2026-10-25
+
+### Added
+- Set the Excel importer to the supplied shared admin code; Chrome stores its salted PBKDF2-SHA-256 hash rather than the plaintext.
+- Added show/hide code control and a 30-second cooldown after five incorrect attempts.
+- Added a localized Safari extension “Coming soon” card in the popup and Studio extensions page.
+- Updated the Extensions page to display the installed extension version dynamically.
+
 ## [4.35.0] — 2026-10-25
 
 ### Added
