@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AINS Studio</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="panel">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">A</div>
+      <div class="brand-copy"><strong>AINS Studio</strong><span id="subtitle">Your reading workspace</span></div>
+      <span class="version" id="version">v—</span>
+    </header>
+
+    <section class="hero">
+      <div class="hero-orb orb-one"></div><div class="hero-orb orb-two"></div>
+      <div class="hero-content"><span class="eyebrow" id="eyebrow">PERSONALISE</span><h1 id="headline">Make AINS feel yours.</h1><p id="description">Tune the look and language. Your choices apply to the open AINS tab.</p></div>
+      <div class="glass-glyph" aria-hidden="true">✦</div>
+    </section>
+
+    <section class="settings-grid" aria-label="Preferences">
+      <label class="setting-card"><span class="setting-icon">◐</span><span class="setting-text"><b id="theme-label">Appearance</b><small id="theme-help">Choose a page theme</small></span><select id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+      <label class="setting-card"><span class="setting-icon">文</span><span class="setting-text"><b id="language-label">Language</b><small id="language-help">Interface language</small></span><select id="language"><option value="ms">Bahasa Melayu</option><option value="en">English</option><option value="zh">中文</option></select></label>
+    </section>
+
+    <section class="section-head"><div><span class="eyebrow" id="tools-label">YOUR TOOLS</span><h2 id="tools-title">Quick actions</h2></div><span class="live-dot" id="connection-dot"></span></section>
+    <section class="action-grid">
+      <button class="action-card primary" id="open-dashboard"><span class="action-icon">▦</span><span><b id="dashboard-label">Dashboard</b><small id="dashboard-help">View your reading progress</small></span><i>↗</i></button>
+      <button class="action-card" id="open-new-record"><span class="action-icon">＋</span><span><b id="record-label">Add a record</b><small id="record-help">Open the reading form</small></span><i>↗</i></button>
+    </section>
+
+    <section class="feature-strip"><div class="feature-symbol">✧</div><div><b id="features-title">Included in your studio</b><p id="features-copy">Date counts · Excel import · readable dark mode · translation</p></div></section>
+    <footer><span id="status">Connect to an AINS tab to apply preferences.</span><span class="footer-version" id="footer-version">AINS STUDIO · v—</span></footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

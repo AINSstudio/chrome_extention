@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "AINS Studio",
+  "version": "4.34.0",
+  "description": "AINS visual redesign with language and theme options, date filtering, and Excel book-record importing.",
+  "action": {
+    "default_title": "AINS Studio",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://ains.moe.gov.my/web/*"],
+      "css": ["styles.css"],
+      "js": ["theme.js", "bulk-import.js", "studio-dashboard.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
