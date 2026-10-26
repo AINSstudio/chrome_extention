@@ -1,5 +1,12 @@
 # Changelog — AINS Studio / Glasswing
 
+## [5.0.1] — 2026-10-26
+
+### Fixed
+- Changed the Excel importer's 3-second approval countdown to use a saved absolute deadline, so browser timer throttling while another app is active does not restart the countdown.
+- Persisted the approval deadline with the current batch row so a page reload resumes the remaining time instead of starting a fresh prompt.
+- Added an importer note explaining how background-tab suspension affects countdown display and resume behavior.
+
 ## [5.0.0] — 2026-10-25
 
 ### Added

@@ -1,32 +1,32 @@
 {
   "manifest_version": 3,
   "name": "AINS Studio",
-  "version": "5.0.0",
-  "description": "AINS Studio 5 with a full settings center, feature controls, reading tools, and Excel import.",
+  "version": "5.0.1",
+  "description": "AINS Studio Glasswing with a full settings center, reading tools, and background-resilient importing.",
   "action": {
     "default_title": "Open AINS Studio settings"
   },
-  "background": { "service_worker": "background.js" },
-  "permissions": ["storage", "scripting"],
-  "host_permissions": ["https://ains.moe.gov.my/web/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://ains.moe.gov.my/web/*"
+  ],
   "content_scripts": [
     {
-      "matches": ["https://ains.moe.gov.my/web/*"],
-      "js": ["theme.js", "bulk-import.js", "studio-dashboard.js"],
+      "matches": [
+        "https://ains.moe.gov.my/web/*"
+      ],
+      "js": [
+        "theme.js",
+        "bulk-import.js",
+        "studio-dashboard.js"
+      ],
       "run_at": "document_start"
     }
   ]
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

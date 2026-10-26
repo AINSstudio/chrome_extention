@@ -1,10 +1,8 @@
-# Contact info@ainsstudio.dpdns.org for any takedowns releated problems.
- 
 # AINS Studio — Glasswing
 
 A client-side Chrome extension that improves AINS reading records at `ains.moe.gov.my/web/*`.
 
-**Current release:** `v5.0.0` · **Codename:** Glasswing
+**Current release:** `v5.0.1` · **Codename:** Glasswing
 
 ## Highlights
 
